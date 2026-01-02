@@ -16,8 +16,17 @@ Use strictly for controlled CTF environments.
 """
 
 import re
-import MySQLdb
+import builtins
+
+if not getattr(builtins, "force_use_libmysqlclient", False):
+    import pymysql
+    pymysql.install_as_MySQLdb()
+
+import MySQLdb # type: ignore
 from typing import Any, Iterable, Optional, Sequence
+from pymysql import MySQLError as MySQLError
+
+__all__ = ['connect', 'FakeConnection', 'FakeCursor', 'MySQLError']
 
 
 class FakeCursor:
@@ -40,21 +49,22 @@ class FakeCursor:
         """
         Convert a Python value into raw SQL form without escaping.
 
-        - None → "NULL"
-        - Everything else → str(v) verbatim
+        - None → NULL
+        - str  → wrapped in single quotes, no escaping
+        - others → str(v)
 
-        Parameters
-        ----------
-        v : Any
-            Arbitrary value passed to SQL query.
-
-        Returns
-        -------
-        str
-            Raw SQL representation.
+        ⚠ Intentionally unsafe:
+        - No escaping
+        - No sanitization
         """
+
         if v is None:
             return "NULL"
+
+        if isinstance(v, str):
+            # Intentionally unsafe: no escaping at all
+            return f"'{v}'"
+
         return str(v)
 
     @staticmethod

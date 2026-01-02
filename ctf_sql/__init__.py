@@ -43,6 +43,11 @@ raw SQL concatenation. **Never use CTF mode in production environments.**
 """
 
 import os
+import builtins
+
+if not getattr(builtins, "force_use_libmysqlclient", False):
+    import pymysql
+    pymysql.install_as_MySQLdb()
 
 # Load constants from the configuration module
 from . import constants
@@ -74,7 +79,7 @@ else:
     # Use normal MySQLdb with normal DB_* constants.
     # No code changes needed; business logic stays identical.
     # ------------------------------------------------------------------
-    import MySQLdb as MySql
+    import MySQLdb as MySql # type: ignore
 
     DB_HOST: str = constants.DB_HOST
     DB_USER: str = constants.DB_USER
