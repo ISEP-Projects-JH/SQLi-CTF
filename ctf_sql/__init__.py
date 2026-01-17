@@ -52,7 +52,18 @@ if not getattr(builtins, "force_use_libmysqlclient", False):
 # Load constants from the configuration module
 from . import constants
 
-MODE: str = os.getenv("CTF_MODE", "").lower()
+# ------------------------------------------------------------------
+# Resolve CTF mode
+#
+# Priority:
+# 1. builtins.CTF_MODE  (explicit, hard override)
+# 2. environment CTF_MODE
+# 3. default: production
+# ------------------------------------------------------------------
+if hasattr(builtins, "CTF_MODE"):
+    MODE = str(getattr(builtins, "CTF_MODE", "")).lower()
+else:
+    MODE = os.getenv("CTF_MODE", "").lower()
 
 if MODE in ("1", "ctf"):
     # ------------------------------------------------------------------
